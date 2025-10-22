@@ -9,7 +9,7 @@ import numpy as np
 import pycocotools.mask as pycocomask
 
 import cvproject.datasets.typedef.labelme as labelme_type
-from cvproject.models import PromptModel, Model
+from cvproject.models.base import BaseModel
 from cvproject.shapes.insts import Insts
 from cvproject.shapes.convert.mask2cnt import mask2cnt_merge
 from cvproject.shapes.convert.cnt2rle import cnt2rle
@@ -17,7 +17,7 @@ from cvproject.shapes.convert.cnt2poly import cnt2poly_labelme
 
 
 def bbox2mask_labelme(
-    model: PromptModel,
+    model: BaseModel,
     img_p: str,
     labelme_p: str,
     export_labelme_p: str,
@@ -30,7 +30,6 @@ def bbox2mask_labelme(
     shapes_dict = labelme_dict["shapes"]
 
     img = cv2.imread(img_p)
-    img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB, img)
 
     bboxes = []
 
@@ -43,12 +42,7 @@ def bbox2mask_labelme(
         bboxes.append(shape_dict["points"])
     
     bboxes = np.asarray(bboxes, dtype = np.int32).reshape(-1, 4)
-    confs = np.ones(len(bboxes), dtype=np.double)
-    cat_ids = np.zeros(len(bboxes), dtype = np.int_)
-    insts = Insts(confs, cat_ids, bboxes, None)
-
-    insts = model.infer_from_prompt(img, insts)
-    masks = insts.masks
+    masks = model.infer_masks_given_bboxes(img, bboxes)
 
     export_labelme_dict: labelme_type.LabelmeDictType = copy.deepcopy(labelme_dict)
     export_labelme_dict["shapes"] = []
@@ -87,7 +81,7 @@ def bbox2mask_labelme(
 
 
 def bbox2mask_labelme_batch(
-    model: PromptModel,
+    model: BaseModel,
     img_dirs: List[str],
     labelme_dirs: List[str],
     export_labelme_dirs: List[str],

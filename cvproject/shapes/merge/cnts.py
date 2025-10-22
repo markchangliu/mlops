@@ -3,8 +3,6 @@ from typing import Tuple
 
 import numpy as np
 
-import cvproject.shapes.merge.cnts_utils as cnts_utils
-import cvproject.shapes.merge.cnts_subs as cnts_subs
 import cvproject.shapes.typedef.contours as cnt_type
 
 

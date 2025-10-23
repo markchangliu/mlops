@@ -7,22 +7,28 @@ from cvproject.datasets.convert.labelme2yolo import labelme2yolo_batch
 
 
 def make_ds_labelme_simple(
-    raw_img_root: str,
+    raw_root: str,
     dataset_root: str,
     labelme_dirname: str
 ) -> None:
+    raw_img_root = os.path.join(raw_root, "images")
+
     dst_labelme_dataset_root = os.path.join(dataset_root, "dataset_labelme")
     dst_train_root = os.path.join(dst_labelme_dataset_root, "train_all")
     dst_test_root = os.path.join(dst_labelme_dataset_root, "test_all")
     dst_train_img_dir = os.path.join(dst_train_root, "images")
     dst_train_labelme_dir = os.path.join(dst_train_root, labelme_dirname)
+    dst_train_path_dir = os.path.join(dst_train_root, "paths")
     dst_test_img_dir = os.path.join(dst_test_root, "images")
     dst_test_labelme_dir = os.path.join(dst_test_root, labelme_dirname)
+    dst_test_path_dir = os.path.join(dst_test_root, "paths")
 
     os.makedirs(dst_train_img_dir, exist_ok=True)
     os.makedirs(dst_train_labelme_dir, exist_ok=True)
+    os.makedirs(dst_train_path_dir, exist_ok=True)
     os.makedirs(dst_test_img_dir, exist_ok=True)
     os.makedirs(dst_test_labelme_dir, exist_ok=True)
+    os.makedirs(dst_test_path_dir, exist_ok=True)
 
     raw_label_root = os.path.join(dataset_root, "raw_labels")
     dirnames = os.listdir(raw_label_root)
@@ -40,9 +46,11 @@ def make_ds_labelme_simple(
         if dirname.endswith("_test"):
             dst_img_dir = dst_test_img_dir
             dst_labelme_dir = dst_test_labelme_dir
+            dst_path_dir = dst_test_path_dir
         elif dirname.endswith("_train"):
             dst_img_dir = dst_train_img_dir
             dst_labelme_dir = dst_train_labelme_dir
+            dst_path_dir = dst_test_path_dir
         else:
             raise NotImplementedError(f"unrecognized split {dirname}")
 
@@ -65,11 +73,17 @@ def make_ds_labelme_simple(
             
             dst_img_name = f"{data_id}{img_suffix}"
             dst_labelme_name = f"{data_id}.json"
+            dst_path_name = f"{data_id}.txt"
             dst_img_p = os.path.join(dst_img_dir, dst_img_name)
             dst_labelme_p = os.path.join(dst_labelme_dir, dst_labelme_name)
+            dst_path_p = os.path.join(dst_path_dir, dst_path_name)
 
             shutil.copy(img_p, dst_img_p)
             shutil.copy(labelme_p, dst_labelme_p)
+
+            with open(dst_path_p, "w") as f:
+                rel_img_p = str(Path(img_p).relative_to(raw_img_root))
+                f.write(rel_img_p)
 
             data_id += 1
 

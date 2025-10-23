@@ -79,8 +79,9 @@ def organize_unprocessed_data(
                 labelme_name = f"{img_stem}.json"
                 labelme_p = os.path.join(root, labelme_name)
 
-                if os.path.exists(ply_p) and not os.path.exists(dst_raw_img_dir):
-                    os.makedirs(dst_raw_img_dir)
+                os.makedirs(dst_raw_img_dir, exist_ok=True)
+                if os.path.exists(ply_p) and not os.path.exists(dst_raw_ply_dir):
+                    os.makedirs(dst_raw_ply_dir)
                 if os.path.exists(labelme_p) and not os.path.exists(dst_ds_labelme_dir):
                     os.makedirs(dst_ds_labelme_dir)
 

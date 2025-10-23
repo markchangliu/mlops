@@ -43,9 +43,9 @@ def labelme2insts_mask(
     bboxes = np.asarray(bboxes, dtype=np.int32)
 
     if len(cat_ids) > 0:
-        masks = np.concatenate(masks, axis=0, dtype = np.bool_)
+        masks = np.concatenate(masks, axis=0).astype(np.bool_)
     else:
-        masks = np.zeros((0, img_h, img_w), dtype = np.bool_)
+        masks = np.zeros((0, img_h, img_w)).astype(np.bool_)
 
     insts = Insts(scores, cat_ids, bboxes, masks)
     

@@ -21,12 +21,12 @@ class Insts:
         if masks is not None:
             assert len(confs) == len(masks)
         
-        self.confs = confs
-        self.cat_ids = cat_ids
-        self.bboxes = bboxes
+        self.confs = confs.astype(np.float32)
+        self.cat_ids = cat_ids.astype(np.int32)
+        self.bboxes = bboxes.astype(np.int32)
 
         if masks is not None:
-            self.masks = masks
+            self.masks = masks.astype(np.bool_)
         else:
             self.masks = None
     

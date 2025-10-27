@@ -52,7 +52,7 @@ def make_ds_labelme_simple(
         elif dirname.endswith("_train"):
             dst_img_dir = dst_train_img_dir
             dst_labelme_dir = dst_train_labelme_dir
-            dst_path_dir = dst_test_path_dir
+            dst_path_dir = dst_train_path_dir
         else:
             raise NotImplementedError(f"unrecognized split {dirname}")
 

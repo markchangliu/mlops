@@ -29,7 +29,7 @@ def img_labelme_p_generator(
         yield img_p, labelme_p
 
 def get_shape_groups(
-    labelme_dict: Dict[str, Any]
+    labelme_dict: labelme_type.LabelmeDictType
 ) -> labelme_type.LabelmeShapeGroupsType:
     # Ann buffer to process shapes with same group_id
     shape_groups: labelme_type.LabelmeShapeGroupsType = {}

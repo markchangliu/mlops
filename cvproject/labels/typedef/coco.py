@@ -69,6 +69,7 @@ class CocoAnnDictType(TypedDict):
         `id`: `int`
         `iscrowd`: `Literal[0, 1]`
         `image_id`: `int`
+        `category_id`: `int`
         `area`: `int`,
         `bbox`: `BBoxCocoType`,
         `segmentation`: `Union[PolysCocoType, RLEsType, EmptyListType]`
@@ -76,6 +77,7 @@ class CocoAnnDictType(TypedDict):
     id: int
     iscrowd: Literal[0, 1]
     image_id: int
+    category_id: int
     area: int
     bbox: BBoxCocoType
     segmentation: Union[PolysCocoType, RLEsType, RLEType, EmptyListType]

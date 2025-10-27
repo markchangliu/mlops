@@ -107,7 +107,7 @@ def merge_contours(
     cnts: cnt_type.ContoursType,
     hierarchies: cnt_type.HierarchiesType
 ) -> cnt_type.ContourType:
-    cnt_groups = cnts_utils.get_contour_groups(cnts, hierarchies)
+    cnt_groups = get_contour_groups(cnts, hierarchies)
 
     cnts_group_merge = []
     for cnt_group in cnt_groups:

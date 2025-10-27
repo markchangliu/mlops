@@ -5,6 +5,7 @@ from pathlib import Path
 from typing import Dict, Literal
 
 from cvproject.labels.convert.labelme2yolo import labelme2yolo_batch
+from cvproject.labels.convert.labelme2coco import labelme2coco_batch
 from cvproject.labels.typedef.labelme import LabelmeDictType
 
 
@@ -118,3 +119,25 @@ def convert_ds_labelme2yolo(
             split, cat_name_id_dict, shape_type
         )
 
+def convert_ds_labelme2coco(
+    dataset_root: str,
+    cat_name_id_dict: Dict[str, int],
+    labelme_dirname: str,
+    shape_type: Literal["bbox", "poly", "rle"]
+) -> None:
+    labelme_root = os.path.join(dataset_root, "dataset_labelme")
+    coco_root = os.path.join(dataset_root, "dataset_coco")
+    splits = os.listdir(labelme_root)
+    splits = [s for s in splits if s.startswith(("train_", "test_"))]
+    splits = [s for s in splits if os.path.isdir(os.path.join(labelme_root, s))]
+
+    for split in splits:
+        img_dir = os.path.join(labelme_root, split, "images")
+        labelme_dir = os.path.join(labelme_root, split, labelme_dirname)
+
+        export_coco_name = f"{split}.json"
+
+        labelme2coco_batch(
+            [img_dir], [labelme_dir], coco_root, split, 
+            export_coco_name, cat_name_id_dict, shape_type
+        )

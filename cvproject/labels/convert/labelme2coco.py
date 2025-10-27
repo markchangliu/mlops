@@ -4,6 +4,7 @@ import shutil
 from pathlib import Path
 from typing import Dict, Tuple, List, Union, Literal
 
+import numpy as np
 import pycocotools.mask as pycocomask
 
 import cvproject.labels.typedef.labelme as labelme_type
@@ -56,7 +57,7 @@ def shape_groups_to_coco_masks(
                 poly_coco = poly2poly.poly2poly_labelme2coco(poly_labelme)
                 polys_coco.append(poly_coco)
             elif shape_type == "rle":
-                rle_coco = poly2rle.poly2rle_coco(poly_labelme, img_hw)
+                rle_coco = poly2rle.poly2rle_labelme(poly_labelme, img_hw)
                 rles_coco.append(rle_coco)
 
         if shape_type == "poly":
@@ -64,8 +65,8 @@ def shape_groups_to_coco_masks(
         elif shape_type == "rle":
             rle = pycocomask.merge(rles_coco, intersect=0)
 
-        area = pycocomask.area(rle)
-        bbox = pycocomask.toBbox(rle)
+        area = pycocomask.area(rle).item()
+        bbox = pycocomask.toBbox(rle).astype(np.int32).tolist()
 
         coco_ann: coco_type.CocoAnnDictType = {}
         coco_ann["area"] = area
@@ -78,6 +79,9 @@ def shape_groups_to_coco_masks(
         if shape_type == "poly":
             coco_ann["segmentation"] = polys_coco
         elif shape_type == "rle":
+            for rle in rles_coco:
+                rle["counts"] = rle["counts"].decode("utf-8")
+
             coco_ann["segmentation"] = rles_coco
 
         coco_anns.append(coco_ann)
@@ -95,6 +99,8 @@ def labelme2coco_batch(
     cat_name_id_dict: Dict[str, int],
     shape_type: Literal["bbox", "poly", "rle"],
 ) -> None:
+    ### TODO: bbox shape type
+
     assert isinstance(img_dirs, list)
     assert isinstance(labelme_dirs, list)
     assert len(img_dirs) == len(labelme_dirs)
@@ -159,8 +165,7 @@ def labelme2coco_batch(
             coco_anns += img_coco_anns
         
             curr_ann_id = next_ann_id
-        
-        curr_img_id += 1
+            curr_img_id += 1
     
     coco_dict: coco_type.CocoDictType = {
         "annotations": coco_anns,

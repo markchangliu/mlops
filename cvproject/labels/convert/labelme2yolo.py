@@ -6,12 +6,12 @@ from typing import List, Dict, Tuple, Union, Literal
 
 import numpy as np
 
-import cvproject.datasets.typedef.labelme as labelme_type
-import cvproject.datasets.typedef.yolo as yolo_type
+import cvproject.labels.typedef.labelme as labelme_type
+import cvproject.labels.typedef.yolo as yolo_type
 import cvproject.shapes.merge.cnts as cnt_merge
 import cvproject.shapes.convert.poly2cnt as poly_cvt
 import cvproject.shapes.convert.cnt2poly as cnt_cvt
-import cvproject.datasets.utils.labelme as labelme_utils
+import cvproject.labels.utils.labelme as labelme_utils
 
 
 def shape_groups_to_yolo_poly(

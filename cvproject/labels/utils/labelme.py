@@ -2,7 +2,7 @@ import os
 from pathlib import Path
 from typing import Union, Generator, Dict, Tuple, Any
 
-import cvproject.datasets.typedef.labelme as labelme_type
+import cvproject.labels.typedef.labelme as labelme_type
 
 
 def img_labelme_p_generator(

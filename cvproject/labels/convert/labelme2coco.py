@@ -4,11 +4,11 @@ from typing import Dict, Tuple, List, Union, Literal
 
 import pycocotools.mask as pycocomask
 
-import cvproject.datasets.typedef.labelme as labelme_type
-import cvproject.datasets.typedef.coco as coco_type
+import cvproject.labels.typedef.labelme as labelme_type
+import cvproject.labels.typedef.coco as coco_type
 import cvproject.shapes.convert.poly2poly as poly2poly
 import cvproject.shapes.convert.poly2rle as poly2rle
-import cvproject.datasets.utils.labelme as labelme_utils
+import cvproject.labels.utils.labelme as labelme_utils
 
 
 def shape_groups_to_coco_rle(

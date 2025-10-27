@@ -1,9 +1,11 @@
 import os
+import json
 import shutil
 from pathlib import Path
 from typing import Dict, Literal
 
-from cvproject.datasets.convert.labelme2yolo import labelme2yolo_batch
+from cvproject.labels.convert.labelme2yolo import labelme2yolo_batch
+from cvproject.labels.typedef.labelme import LabelmeDictType
 
 
 def make_ds_labelme_simple(
@@ -80,6 +82,14 @@ def make_ds_labelme_simple(
 
             shutil.copy(img_p, dst_img_p)
             shutil.copy(labelme_p, dst_labelme_p)
+
+            with open(dst_labelme_p, "r") as f:
+                labelme_dict: LabelmeDictType = json.load(f)
+                labelme_dict["imageData"] = None
+                labelme_dict["imagePath"] = dst_img_name
+            
+            with open(dst_labelme_p, "w") as f:
+                json.dump(labelme_dict, f)
 
             with open(dst_path_p, "w") as f:
                 rel_img_p = str(Path(img_p).relative_to(raw_img_root))

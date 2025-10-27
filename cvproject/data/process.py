@@ -4,7 +4,7 @@ import shutil
 from pathlib import Path
 from typing import Callable, Union
 
-from cvproject.datasets.typedef.labelme import LabelmeDictType
+from cvproject.labels.typedef.labelme import LabelmeDictType
 
 
 def _default_name_mapf_img2ply(
@@ -100,6 +100,14 @@ def organize_unprocessed_data(
 
                 if os.path.exists(labelme_p):
                     shutil.copy(labelme_p, dst_labelme_p)
+
+                    with open(dst_labelme_p, "r") as f:
+                        labelme_dict: LabelmeDictType = json.load(f)
+                        labelme_dict["imageData"] = None
+                        labelme_dict["imagePath"] = dst_img_name
+                    
+                    with open(dst_labelme_p, "w") as f:
+                        json.dump(labelme_dict, f)
 
                 data_id += 1
 

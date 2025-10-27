@@ -8,7 +8,7 @@ import cv2
 import numpy as np
 import pycocotools.mask as pycocomask
 
-import cvproject.datasets.typedef.labelme as labelme_type
+import cvproject.labels.typedef.labelme as labelme_type
 from cvproject.models.base import BaseModel
 from cvproject.shapes.insts import Insts
 from cvproject.shapes.convert.mask2cnt import mask2cnt_merge
@@ -120,4 +120,49 @@ def bbox2mask_labelme_batch(
                 model, img_p, labelme_p, export_labelme_p, 
                 aspect_ratio_range, area_range
             )
-    
+
+def bbox2mask_labelme_dataset(
+    model: BaseModel,
+    raw_root: str,
+    dataset_root: str,
+    src_labelme_dirname: str,
+    dst_labelme_dirname: str,
+    aspect_ratio_range: Tuple[float, float],
+    area_range: Tuple[float, float]
+) -> None:
+    raw_img_root = os.path.join(raw_root, "images")
+    ds_raw_label_root = os.path.join(dataset_root, "raw_labels")
+
+    batchnames = os.listdir(ds_raw_label_root)
+    batchnames.sort()
+
+    img_dirs = []
+    labelme_dirs = []
+    export_labelme_dirs = []
+
+    for bn in batchnames:
+        raw_img_dir = os.path.join(raw_img_root, bn, "images")
+        src_label_dir = os.path.join(ds_raw_label_root, bn, src_labelme_dirname)
+        dst_label_dir = os.path.join(ds_raw_label_root, bn, dst_labelme_dirname)
+
+        if not os.path.exists(src_label_dir):
+            continue
+        if not os.path.isdir(src_label_dir):
+            continue
+        if not os.path.exists(raw_img_dir):
+            continue
+        if not os.path.isdir(raw_img_dir):
+            continue
+
+        img_dirs.append(raw_img_dir)
+        labelme_dirs.append(src_label_dir)
+        export_labelme_dirs.append(dst_label_dir)
+
+    bbox2mask_labelme_batch(
+        model, img_dirs, labelme_dirs, export_labelme_dirs,
+        aspect_ratio_range, area_range
+    )
+
+
+
+

@@ -1,114 +1,171 @@
-from typing import TypedDict, Dict, List
+import os
+from typing import TypedDict, List, TypeAlias, Dict, Literal, Tuple
 
+import cv2
 import numpy as np
 from numpy.typing import NDArray
-import pycocotools
-import pycocotools.mask as pycocomask
-
-from cvproject.shapes.typedef.masks import MasksType
 
 
 class MatchResultType(TypedDict):
-    # dt: Dict[int, List[int]]
-    # gt: Dict[int, List[int]]
-    tp_dt_indice: List[int]
-    tp_gt_indice: List[int]
-    fp_dt_indice: List[int]
-    fn_gt_indice: List[int]
-
-
-def iou_mask(
-    masks1: MasksType,
-    masks2: MasksType,
-) -> NDArray[np.number]:
     """
-    Params
-    ------
-    - `masks1`: shape (n, h, w)
-    - `masks2`: shape (m, h, w)
-
-    Returns
-    -----
-    - `ious`: (n, m)
+    - `dt_match_flags`: `(num_dts, )`, `bool`
+    - `dt_match_gt_idx`: `(num_dts, )`, `gt_idx` or `-1`
+    - `gt_match_flags`: `(num_gts, )`, `bool`
+    - `gt_match_dt_idx`: `(num_gts, (num_match_dts, ))`, sorted by ious
     """
-    is_crowd = [False] * len(masks2)
-    masks1 = np.transpose(masks1, (1, 2, 0)).astype(np.uint8)
-    masks2 = np.transpose(masks2, (1, 2, 0)).astype(np.uint8)
-    rles1 = pycocomask.encode(np.asfortranarray(masks1))
-    rles2 = pycocomask.encode(np.asfortranarray(masks2))
-    ious = pycocomask.iou(rles1, rles2, is_crowd)
-    return ious
+    dt_match_flags: NDArray[np.bool]
+    dt_match_gt_idx: NDArray[np.integer]
+    gt_match_flags: NDArray[np.bool]
+    gt_match_dt_idx: List[List[int]]
+
+class MatchResultSummaryType(TypedDict):
+    """
+    - `num_tps`: `int`
+    - `num_fps`: `int`
+    - `num_fns`: `int`
+    - `num_dts`: `int`
+    - `num_gts`: `int`
+    """
+    num_tps: int
+    num_fps: int
+    num_fns: int
+    num_dts: int
+    num_gts: int
+
+class MetricSingleClassType(TypedDict):
+    """
+    - `prec`: `List[float]`, prec at different ious
+    - `rec`: `List[float]`, rec at different ious
+    - `ap`: `List[float]`, ap at different ious
+    - `map`: `float`
+    """
+
+MetricType: TypeAlias = Dict[str, MetricSingleClassType]
+"""
+`MetricType`: key is class name
+"""
+
 
 def match_dt_gt(
-    masks_dt: MasksType,
-    masks_gt: MasksType,
+    ious: NDArray[np.number],
     iou_thres: float,
-    gt_match_1dt_atmost_flag: bool,
-    allow_suboptim_match: bool,
-) -> NDArray[np.bool_]:
-    ious = iou_mask(masks_dt, masks_gt)
-    match_res = ious > iou_thres
+    gt_match_multi_dt_flag: bool
+) -> MatchResultType:
+    """
+    Params
+    -----
+    - `ious`: `(num_dts, num_gts)`
+    - `iou_thres`: `float`
+    - `multiple_dt_match_flag`: `bool`
+    """
+    ious_copy = np.copy(ious)
 
-    match_res_dt = 
+    num_dts, num_gts = ious.shape
+
+    match_res: MatchResultType = {
+        "dt_match_flags": np.zeros(num_dts).astype(np.bool),
+        "dt_match_gt_idx": np.ones(num_dts) * -1,
+        "gt_match_flags": np.zeros(num_gts).astype(np.bool),
+        "gt_match_dt_idx": [[] for i in range(num_gts)]
+    }
+
+    num_dts_remain = num_dts
+
+    for i in range(num_gts):
+        if num_dts_remain == 0:
+            break
+
+        iou_max_idx = np.argmax(ious_copy)
+        dt_idx, gt_idx = np.unravel_index(iou_max_idx, ious_copy.shape)
+        dt_idx = dt_idx.item()
+        gt_idx = gt_idx.item()
+        max_iou = ious_copy[dt_idx, gt_idx]
+
+        if max_iou < iou_thres:
+            break
+
+        match_res["dt_match_flags"][dt_idx] = True
+        match_res["dt_match_gt_idx"][dt_idx] = gt_idx
+        match_res["gt_match_flags"][gt_idx] = True
+        match_res["gt_match_dt_idx"][gt_idx].append(dt_idx)
+
+        ious_copy[dt_idx, :] = float("-inf")
+        ious_copy[:, gt_idx] = float("-inf")
+
+        num_dts_remain -= 1
+    
+    if not gt_match_multi_dt_flag:
+        return match_res
+    
+    ious_remain = np.copy(ious)
+    ious_remain[match_res["dt_match_flags"], :] = float("-inf")
+
+    for i in range(num_dts_remain):
+        iou_max_idx = np.argmax(ious_remain)
+        dt_idx, gt_idx = np.unravel_index(iou_max_idx, ious_remain.shape)
+        dt_idx = dt_idx.item()
+        gt_idx = gt_idx.item()
+        max_iou = ious_remain[dt_idx, gt_idx]
+
+        if max_iou < iou_thres:
+            break
+
+        match_res["dt_match_flags"][dt_idx] = True
+        match_res["dt_match_gt_idx"][dt_idx] = gt_idx
+        match_res["gt_match_dt_idx"][gt_idx].append(dt_idx)
+
+        ious_remain[dt_idx, :] = float("-inf")
+        ious_remain[:, gt_idx] = float("-inf")
+    
+    return match_res
+
+def get_match_summary(
+    match_res: MatchResultType
+) -> MatchResultSummaryType:
+    pass
+
+def eval_img(
+    img_p: str,
+    model: object,
+    export_vis_flag: bool,
+    export_vis_p: str,
+    export_img_res_flag: bool,
+    export_img_res_p: str,
+) -> Tuple[MatchResultSummaryType, MetricType]:
+    pass
+
+def eval_labelme_dataset_online(
+    dataset_root: str,
+    model: object,
+    metric_avg_mode: Literal["img", "overall"],
+    export_vis_flag: bool,
+    export_vis_root: str,
+    export_img_res_flag: bool,
+    export_img_res_root: str,
+) -> MetricType:
+    pass
+    
+
+def test1() -> None:
+    ious = [
+        [0.06374037, 0.07814641, 0.06835990],
+        [0.00127131, 0.82855156, 0.09722756],
+        # [0.69328143, 0.2729694 , 0.06887056],
+        # [0.90708562, 0.59382972, 0.0870394 ],
+        # [0.50794111, 0.89787563, 0.14130168]
+    ]
+
+    ious = np.asarray(ious)
+
+    match_res = match_dt_gt(
+        ious, 0.5, False
+    )
+
+    for k, v in match_res.items():
+        print(k)
+        print(v)
+        print()
 
 
-# def match_dt_gt(
-#     masks_dt: MasksType,
-#     masks_gt: MasksType,
-#     iou_thres: float,
-#     gt_match_1dt_atmost_flag: bool,
-#     dt_match_1gt_atmost_flag: bool,
-#     match_1vs1_only_flag: bool,
-#     allow_nonbest_match_flag: bool,
-# ) -> NDArray[np.integer]:
-#     """
-#     Params
-#     -----
-#     - `masks_dt`: `MasksType`, shape `(n, h, w)`
-#     - `masks_dt`: `MasksType`, shape `(m, h, w)`
-#     - `iou_thres`: `float`
-#     - `match_1vs1_only_flag`: `bool`
-#         - `True`: 1 gt can only have 1 dt match at most
-#         - `False`: 1 gt can have multiple dt match
-#     - `allow_nonbest_match_flag`: `bool`, used only when `match_1vs1_only_flag=True`;
-#     decides whether to adjust the match results for dts that have mul
-#         - `True`: if a dt match
-
-#     Returns
-#     -----
-#     - `tp_flags`: `NDArray[bool]`, shape `(n, )`
-#     - `tp_gt_indice`: `NDArray[int]`, shape `(n, )`, -1 means no match
-#     - `fn_flags`: `NDArray[bool]`, shape `(m, )`
-#     """
-#     ious = iou_mask(masks_dt, masks_gt)
-#     num_dts = len(masks_dt)
-#     num_gts = len(masks_gt)
-
-#     # shape (num_dts, )
-#     match_gt_indice = np.argmax(ious, axis = 1)
-#     best_ious_dt = ious[range(num_dts), match_gt_indice]
-
-#     # shape (num_gts, )
-#     match_dt_indice = np.argmax(ious, axis = 0)
-#     best_ious_gt = ious[match_dt_indice, range(num_gts)]
-
-#     if not match_1vs1_only_flag:
-#         tp_flags = best_ious_dt > iou_thres
-#         tp_gt_indice = match_gt_indice
-#         tp_gt_indice[~tp_flags] = -1
-#         fn_flags = ~np.isin(list(range(num_gts)), tp_gt_indice)
-
-#     else:
-#         fn_flags = best_ious_gt < iou_thres
-#         match_dt_indice[fn_flags] = -1
-
-        
-
-#         tp_flags = best_ious_dt > iou_thres
-#         tp_gt_indice = match_gt_indice
-
-#         # set 
-
-
-        
-
+if __name__ == "__main__":
+    test1()

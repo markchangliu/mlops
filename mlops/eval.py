@@ -5,6 +5,8 @@ import cv2
 import numpy as np
 from numpy.typing import NDArray
 
+from mlops.models.base import BaseModel
+
 
 class MatchResultType(TypedDict):
     """
@@ -32,18 +34,18 @@ class MatchResultSummaryType(TypedDict):
     num_dts: int
     num_gts: int
 
-class MetricSingleClassType(TypedDict):
+class MetricSingleClsType(TypedDict):
     """
     - `prec`: `List[float]`, prec at different ious
     - `rec`: `List[float]`, rec at different ious
     - `ap`: `List[float]`, ap at different ious
-    - `map`: `float`
+    - `ap_overall`: float
     """
 
-MetricType: TypeAlias = Dict[str, MetricSingleClassType]
-"""
-`MetricType`: key is class name
-"""
+class MetricMultiClsType(TypedDict):
+    metric_ious: Dict[str, MetricSingleClsType]
+    map: List[float]
+    map_overall: List[float]
 
 
 def match_dt_gt(
@@ -122,6 +124,21 @@ def match_dt_gt(
 def get_match_summary(
     match_res: MatchResultType
 ) -> MatchResultSummaryType:
+    summary: MatchResultSummaryType = {
+        "num_dts": 0,
+        "num_gts": 0,
+        "num_tps": 0,
+        "num_fps": 0,
+        "num_fns": 0,
+    }
+
+    num_dts = len(match_res["dt_match_flags"])
+    num_gts = len(match_res["gt_match_flags"])
+    num_tps = np.sum(match_res["dt_match_flags"]).item()
+
+    summary["num_gts"] = len(match_res["gt_match_flags"])
+    summary["num_dts"] = len(match_res["dt_match_flags"])
+    summary["num_fps"] = np.sum(match_res)
     pass
 
 def eval_img(

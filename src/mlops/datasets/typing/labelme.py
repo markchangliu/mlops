@@ -1,11 +1,19 @@
 from typing import TypedDict, Union, Optional, Literal, Any, List, Dict, TypeAlias
 
-from mlops.shapes.typing import PolyLabelmeType, BBoxLabelmeType
+from mlops.shapes.typing.bboxes import BBoxLabelmeType
+from mlops.shapes.typing.polys import PolyLabelmeType
+
+
+__all__ = [
+    "LabelmeShapeType",
+    "LabelmeFileType",
+    "LabelmeShapeGroupsType"
+]
 
 
 class LabelmeShapeType(TypedDict):
     """
-    `LabelmeShapeDictType`, `dict`
+    `LabelmeShapeType`, `dict`
         `points`: `Union[PolyLabelmeType, BBoxLabelmeType]`
         `label`: `str`
         `shape_type`: `Literal["polygon", "rectangle"]`
@@ -18,12 +26,12 @@ class LabelmeShapeType(TypedDict):
     group_id: Optional[str]
     flags: Dict[Any, Any]
 
-class LabelmeDictType(TypedDict):
+class LabelmeFileType(TypedDict):
     """
-    `LabelmeDictType`, `dict`
+    `LabelmeFileType`, `dict`
         `version`: `str`
         `flags`: `Dict[str, bool]`
-        `shapes`: `List[LabelmeShapeDictType]`
+        `shapes`: `List[LabelmeShapeType]`
         `imagePath`: `str`
         `imageData`: `Optional[str]`
         `imageHeight`: int
@@ -39,5 +47,8 @@ class LabelmeDictType(TypedDict):
 
 LabelmeShapeGroupsType: TypeAlias = Dict[Union[str, int], List[LabelmeShapeType]]
 """
-`LabelmeShapeGroupsType, {group_id: labelme_shape_dict_list}, (num_groups, )`
+`LabelmeShapeGroupsType`
+    `Dict[Union[str, int], List[LabelmeShapeType]]`, 
+    `{group_id: labelme_shape_dict_list}`,
+    `(num_groups, )`
 """

@@ -1,21 +1,9 @@
-from typing import TypedDict, Union, Optional, Literal, Any, List, Dict
+from typing import TypedDict, Union, Optional, Literal, Any, List, Dict, TypeAlias
 
-try:
-    from typing import TypeAlias
-except:
-    from typing_extensions import TypeAlias
-
-from mlops.shapes.typing import BBoxLabelmeType, PolyLabelmeType
+from mlops.shapes.typing import PolyLabelmeType, BBoxLabelmeType
 
 
-__all__ = [
-    "LabelmeShapeDictType",
-    "LabelmeDictType",
-    "LabelmeShapeGroupsType"
-]
-
-
-class LabelmeShapeDictType(TypedDict):
+class LabelmeShapeType(TypedDict):
     """
     `LabelmeShapeDictType`, `dict`
         `points`: `Union[PolyLabelmeType, BBoxLabelmeType]`
@@ -43,16 +31,13 @@ class LabelmeDictType(TypedDict):
     """
     version: str
     flags: Dict[str, bool]
-    shapes: List[LabelmeShapeDictType]
+    shapes: List[LabelmeShapeType]
     imagePath: str
     imageData: Optional[str]
     imageHeight: int
     imageWidth: int
 
-LabelmeShapeGroupsType: TypeAlias = Dict[Union[str, int], List[LabelmeShapeDictType]]
+LabelmeShapeGroupsType: TypeAlias = Dict[Union[str, int], List[LabelmeShapeType]]
 """
-`LabelmeShapeGroupsType`
-    `Dict[Union[str, int], List[LabelmeShapeDictType]]`, 
-    `{group_id: labelme_shape_dict_list}`,
-    `(num_groups, )`
+`LabelmeShapeGroupsType, {group_id: labelme_shape_dict_list}, (num_groups, )`
 """

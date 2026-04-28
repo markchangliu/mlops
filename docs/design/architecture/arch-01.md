@@ -3,7 +3,7 @@
 ## 代码结构
 
 ```
-src
+src/mlops
 | - __init__.py         # 公共 API 入口
 | - core
 | - | - __init__.py

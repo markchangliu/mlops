@@ -248,18 +248,30 @@ class InstancesType(TypedDict):
 
 ##### Schema Dataset #####
 
-class DatasetSchema(TypedDict):
+class OnlineDatasetType(TypedDict):
     """
     `img_p_list: list[str]`
-    `label_p_list: list[str]`
-    `inst_list: Union[list[InstancesType], None]`
+    `insts_list: list[Union[InstancesType, None]]`
     `cat_id_name_dict: dict[int, str]`
     `cat_name_id_dict: dict[str, int]`
     `format: Literal["bbox", "mask", "poly"]`
     """
     img_p_list: list[str]
-    label_p_list: list[str]
-    inst_list: Union[list[InstancesType], None]
+    insts_list: list[Union[InstancesType, None]]
+    cat_id_name_dict: dict[int, str]
+    cat_name_id_dict: dict[str, int]
+    format: Literal["bbox", "mask", "poly"]
+
+class OfflineDatasetType(TypedDict):
+    """
+    `img_p_list: list[str]`
+    `label_p_list: list[Union[str, None]]`
+    `cat_id_name_dict: dict[int, str]`
+    `cat_name_id_dict: dict[str, int]`
+    `format: Literal["bbox", "mask", "poly"]`
+    """
+    img_p_list: list[str]
+    label_p_list: list[Union[str, None]]
     cat_id_name_dict: dict[int, str]
     cat_name_id_dict: dict[str, int]
     format: Literal["bbox", "mask", "poly"]

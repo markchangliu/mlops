@@ -41,5 +41,41 @@ def _load_labelme_offline(
     
     return dataset_dict
 
+def _load_labelme_online(
+    img_root: str,
+    labelme_root: str,
+    cat_name_id_dict: dict[str, int],
+    label_format: Literal["bbox", "mask", "poly"],
+    add_empty_img_flag: bool
+) -> OnlineDatasetType:
+    dataset_dict: OnlineDatasetType = {
+        "cat_id_name_dict": {v:k for k, v in cat_name_id_dict.items()},
+        "cat_name_id_dict": cat_name_id_dict,
+        "format": label_format,
+        "img_p_list": [],
+        "insts_list": []
+    }
 
+    for root, subdirs, files in os.walk(img_root):
+        for file in files:
+            if not file.endswith((".png", ".jpg", ".jpeg", ".bmp")):
+                continue
+
+            img_p = os.path.join(root, file)
+            stem = Path(file).stem
+            rel_dir = str(Path(img_p).relative_to(img_root).parent)
+            label_p = os.path.join(labelme_root, rel_dir, f"{stem}.json")
+
+            if not os.path.exists(label_p):
+                if not add_empty_img_flag:
+                    continue
+
+            dataset_dict["img_p_list"].append(img_p)
+
+            if not os.path.exists(label_p):
+                dataset_dict["insts_list"].append(None)
+            
+            with open(label_p, "r") as f:
+                labelme_dict: LabelmeFileType = json.load(f)
+            
             

@@ -14,6 +14,7 @@ src/mlops
 | - | - crop.py         # crop 变换
 | - | - pipeline.py     # 变换流水线
 | - convert
+| - | - shapes.py       # bbox、mask、poly 格式转化
 | - | - labelme.py      # labelme <-> 内部契约
 | - | - coco.py         # coco <-> 内部契约
 | - | - yolo.py         # yolo <-> 内部契约

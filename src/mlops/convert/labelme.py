@@ -1,8 +1,9 @@
 import json
 import os
 from pathlib import Path
-from typing import Literal
+from typing import Literal, Union
 
+from mlops.core.schema import InstancesType
 from mlops.core.schema import LabelmeFileType, LabelmeShapeType
 from mlops.core.schema import OnlineDatasetType, OfflineDatasetType
 
@@ -41,6 +42,33 @@ def _load_labelme_offline(
     
     return dataset_dict
 
+def _labelmeFile2instances(
+    label_p: str,
+    cat_name_id_dict: dict[str, int],
+    label_format: Literal["bbox", "mask", "poly"],
+) -> Union[InstancesType, None]:
+    insts: InstancesType = {
+        "bboxes": None,
+        "cat_ids": None,
+        "confs": None,
+        "masks": None,
+        "polys": None
+    }
+
+    if not os.path.exists(label_p):
+        return None
+    
+    with open(label_p, "r") as f:
+        labelme_dict: LabelmeFileType = json.load(f)
+
+    bboxes = []
+    polys = []
+
+    for shape in labelme_dict["shapes"]:
+        if label_format == "bbox":
+            bboxes.append(shape["points"])
+        
+
 def _load_labelme_online(
     img_root: str,
     labelme_root: str,
@@ -77,5 +105,11 @@ def _load_labelme_online(
             
             with open(label_p, "r") as f:
                 labelme_dict: LabelmeFileType = json.load(f)
+                labelme_shape_dict: LabelmeShapeType = labelme_dict["shapes"]
+                bboxes = []
+                polys = []
+
+                if label_format == "bbox":
+                    bboxes
             
             

@@ -238,13 +238,12 @@ class InstancesType(TypedDict):
     `cat_ids: NDArray[np.integer]`
     `confs: NDArray[np.floating]`
     `bboxes: BBoxesSchemaType`
-    `masks: MasksSchemaType`
+    `polys: Union[list[PolySchemaType], None]`
     """
     cat_ids: NDArray[np.integer]
     confs: NDArray[np.floating]
     bboxes: BBoxesSchemaType
-    masks: Union[MasksSchemaType, None]
-    polys: Union[list[PolyType], None]
+    polys: Union[list[PolySchemaType], None]
 
 ##### Schema Dataset #####
 
@@ -254,13 +253,13 @@ class OnlineDatasetType(TypedDict):
     `insts_list: list[Union[InstancesType, None]]`
     `cat_id_name_dict: dict[int, str]`
     `cat_name_id_dict: dict[str, int]`
-    `format: Literal["bbox", "mask", "poly"]`
+    `format: Literal["bbox", "poly"]`
     """
     img_p_list: list[str]
     insts_list: list[Union[InstancesType, None]]
     cat_id_name_dict: dict[int, str]
     cat_name_id_dict: dict[str, int]
-    format: Literal["bbox", "mask", "poly"]
+    format: Literal["bbox", "poly"]
 
 class OfflineDatasetType(TypedDict):
     """
@@ -268,13 +267,13 @@ class OfflineDatasetType(TypedDict):
     `label_p_list: list[Union[str, None]]`
     `cat_id_name_dict: dict[int, str]`
     `cat_name_id_dict: dict[str, int]`
-    `format: Literal["bbox", "mask", "poly"]`
+    `format: Literal["bbox", "poly"]`
     """
     img_p_list: list[str]
     label_p_list: list[Union[str, None]]
     cat_id_name_dict: dict[int, str]
     cat_name_id_dict: dict[str, int]
-    format: Literal["bbox", "mask", "poly"]
+    format: Literal["bbox", "poly"]
 
 ##### Evaluation Result #####
 

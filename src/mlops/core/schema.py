@@ -4,6 +4,20 @@ import numpy as np
 from numpy.typing import NDArray
 
 
+##### Confidence #####
+
+ConfsSchemaType: TypeAlias = NDArray[np.floating]
+"""
+`NDArray[np.floating], (N, )`
+"""
+
+##### Category Id #####
+
+CatIDsSchemaType: TypeAlias = NDArray[np.integer]
+"""
+`NDArray[np.integer], (N, )`
+"""
+
 ##### BBox #####
 
 BBoxSchemaType: TypeAlias = NDArray[np.integer]
@@ -88,6 +102,11 @@ MaskFormatType: TypeAlias = Literal["schema", "img"]
 PolySchemaType: TypeAlias = NDArray[np.integer]
 """
 `NDArray[np.integer], (num_points, 2), [[x, y], ...]`
+"""
+
+PolysSchemaType: TypeAlias = list["PolySchemaType"]
+"""
+`list[PolySchemaType], (num_polys, (num_points, 2))`
 """
 
 PolyLabelmeType: TypeAlias = list[tuple[float, float]]
@@ -235,15 +254,15 @@ YoloSegAnnType: TypeAlias = list[float]
 
 class InstancesType(TypedDict):
     """
-    `cat_ids: NDArray[np.integer]`
-    `confs: NDArray[np.floating]`
+    `cat_ids: CatIDsSchemaType`
+    `confs: ConfsSchemaType`
     `bboxes: BBoxesSchemaType`
-    `polys: Union[list[PolySchemaType], None]`
+    `polys: Union[PolysSchemaType, None]`
     """
-    cat_ids: NDArray[np.integer]
-    confs: NDArray[np.floating]
+    cat_ids: CatIDsSchemaType
+    confs: ConfsSchemaType
     bboxes: BBoxesSchemaType
-    polys: Union[list[PolySchemaType], None]
+    polys: Union[PolysSchemaType, None]
 
 ##### Schema Dataset #####
 

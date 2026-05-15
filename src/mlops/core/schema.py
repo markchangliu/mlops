@@ -296,22 +296,57 @@ class OfflineDatasetType(TypedDict):
 
 ##### Evaluation Result #####
 
-class DatasetEvalResult(TypedDict):
+class OfflineImgEvalResType(TypedDict):
     """
-    `img_p_list: list[str]`
-    `gt_p_list: list[str]`
-    `gt_inst_list: Union[list[InstancesType], None]`
-    `pred_p_list: list[str]`
-    `pred_inst_list: Union[list[InstancesType], None]`
-    `tp_pred_id_list: list[list[int]]`
-    `fp_pred_id_list: list[list[int]]`
-    `fn_gt_id_list: list[list[int]]`
+    `img_p: str`
+    `gt_label_p: str`
+    `pred_label_p: str`
+    `gt_pred_id_dict: dict[int, Union[None, int]], (num_gts, )`
+    `pred_gt_id_dict: dict[int, Union[None, int]], (num_preds, )`
+    `tp_flags: NDArray[bool], (num_preds, )`
+    `fn_flags: NDArray[bool], (num_gts, )`
+    `mAP: float`
+    `precision: float`
+    `recall: float`
+    `tp_avg_iou: float`
     """
-    img_p_list: list[str]
-    gt_p_list: list[str]
-    gt_inst_list: Union[list[InstancesType], None]
-    pred_p_list: list[str]
-    pred_inst_list: Union[list[InstancesType], None]
-    tp_pred_id_list: list[list[int]]
-    fp_pred_id_list: list[list[int]]
-    fn_gt_id_list: list[list[int]]
+    img_p: str
+    gt_label_p: str
+    pred_label_p: str
+    gt_pred_id_dict: dict[int, Union[None, int]]
+    pred_gt_id_dict: dict[int, Union[None, int]]
+    tp_flags: NDArray[bool]
+    fn_flags: NDArray[bool]
+    mAP: float
+    precision: float
+    recall: float
+    tp_avg_iou: float
+
+class OfflineImgEvalResType(TypedDict):
+    """
+    `img_p: str`
+    `gt_insts: InstancesType`
+    `pred_insts: sInstancesTypetr`
+    `gt_pred_id_dict: dict[int, Union[None, int]], (num_gts, )`
+    `pred_gt_id_dict: dict[int, Union[None, int]], (num_preds, )`
+    `tp_flags: NDArray[bool], (num_preds, )`
+    `fn_flags: NDArray[bool], (num_gts, )`
+    `mAP: float`
+    `precision: float`
+    `recall: float`
+    `tp_avg_iou: float`
+    """
+    img_p: str
+    gt_insts: InstancesType
+    pred_insts: InstancesType
+    gt_pred_id_dict: dict[int, Union[None, int]]
+    pred_gt_id_dict: dict[int, Union[None, int]]
+    tp_flags: NDArray[bool]
+    fn_flags: NDArray[bool]
+    mAP: float
+    precision: float
+    recall: float
+    tp_avg_iou: float
+
+class OfflineDatasetEvalResType(TypedDict):
+    

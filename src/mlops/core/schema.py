@@ -296,57 +296,71 @@ class OfflineDatasetType(TypedDict):
 
 ##### Evaluation Result #####
 
-class OfflineImgEvalResType(TypedDict):
+class ImgEvalResType(TypedDict):
     """
-    `img_p: str`
-    `gt_label_p: str`
-    `pred_label_p: str`
+    `img_id: int`
     `gt_pred_id_dict: dict[int, Union[None, int]], (num_gts, )`
     `pred_gt_id_dict: dict[int, Union[None, int]], (num_preds, )`
-    `tp_flags: NDArray[bool], (num_preds, )`
+    `fp_flags: NDArray[bool], (num_preds, )`
     `fn_flags: NDArray[bool], (num_gts, )`
+    `num_preds: int`
+    `num_tps: int`
+    `num_fps: int`
+    `num_gts: int`
+    `num_fps: int`
     `mAP: float`
     `precision: float`
     `recall: float`
     `tp_avg_iou: float`
     """
-    img_p: str
-    gt_label_p: str
-    pred_label_p: str
+    img_id: int
     gt_pred_id_dict: dict[int, Union[None, int]]
     pred_gt_id_dict: dict[int, Union[None, int]]
-    tp_flags: NDArray[bool]
+    fp_flags: NDArray[bool]
     fn_flags: NDArray[bool]
+    num_preds: int
+    num_tps: int
+    num_fps: int
+    num_gts: int
+    num_fps: int
     mAP: float
     precision: float
     recall: float
     tp_avg_iou: float
 
-class OfflineImgEvalResType(TypedDict):
+class DatasetEvalResType(TypedDict):
     """
-    `img_p: str`
-    `gt_insts: InstancesType`
-    `pred_insts: sInstancesTypetr`
-    `gt_pred_id_dict: dict[int, Union[None, int]], (num_gts, )`
-    `pred_gt_id_dict: dict[int, Union[None, int]], (num_preds, )`
-    `tp_flags: NDArray[bool], (num_preds, )`
-    `fn_flags: NDArray[bool], (num_gts, )`
-    `mAP: float`
-    `precision: float`
-    `recall: float`
-    `tp_avg_iou: float`
-    """
-    img_p: str
-    gt_insts: InstancesType
-    pred_insts: InstancesType
-    gt_pred_id_dict: dict[int, Union[None, int]]
-    pred_gt_id_dict: dict[int, Union[None, int]]
-    tp_flags: NDArray[bool]
-    fn_flags: NDArray[bool]
-    mAP: float
-    precision: float
-    recall: float
+    ```
+    img_res_list: list["ImgEvalResType"]
+    fp_flags: NDArray[bool]
+    fp_flags: NDArray[bool]
+    num_preds: int
+    num_tps: int
+    num_fps: int
+    num_gts: int
+    num_fps: int
+    mAP_insts: float
+    mAP_imgs: float
+    precision_insts: float
+    precision_imgs: float
+    recall_insts: float
+    recall_imgs: float
     tp_avg_iou: float
-
-class OfflineDatasetEvalResType(TypedDict):
+    ```
+    """
+    img_res_list: list["ImgEvalResType"]
+    fp_flags: NDArray[bool]
+    fp_flags: NDArray[bool]
+    num_preds: int
+    num_tps: int
+    num_fps: int
+    num_gts: int
+    num_fps: int
+    mAP_insts: float
+    mAP_imgs: float
+    precision_insts: float
+    precision_imgs: float
+    recall_insts: float
+    recall_imgs: float
+    tp_avg_iou: float
     

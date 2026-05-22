@@ -3,6 +3,7 @@ import os
 from pathlib import Path
 from typing import Literal, Union
 
+import cv2
 import numpy as np
 
 import mlops.convert.shapes as shapes_lib
@@ -43,6 +44,21 @@ def _load_labelme_offline(
             if not os.path.exists(label_p):
                 if not add_empty_img_flag:
                     continue
+
+                img = cv2.imread(img_p)
+                img_h, img_w = img.shape[:2]
+
+                labelme_dict: schema_lib.LabelmeFileType = {
+                    "flags": {},
+                    "imageData": None,
+                    "imageHeight": img_h,
+                    "imageWidth": img_w,
+                    "version": "4.5.6",
+                    "shapes": []
+                }
+
+                with open(label_p, "w") as f:
+                    json.dump(labelme_dict, f)
             
             dataset_dict["img_p_list"].append(img_p)
             dataset_dict["label_p_list"].append(None)

@@ -4,7 +4,7 @@ from typing import Union
 import numpy as np
 from numpy.typing import NDArray
 
-import mlops.core.schema as schema
+import mlops.core.schema as schema_lib
 
 
 __all__ = [
@@ -16,19 +16,19 @@ __all__ = [
 class Instances:
     def __init__(
         self,
-        data: schema.InstancesType
+        data: schema_lib.InstancesType
     ) -> None:
         self.data = copy.deepcopy(data)
     
     @classmethod
     def from_values(
         cls,
-        confs: schema.ConfsSchemaType,
-        cat_ids: schema.CatIDsSchemaType,
-        bboxes: schema.BBoxesSchemaType,
-        polys: Union[None, list[schema.PolysSchemaType]]
+        confs: schema_lib.ConfsSchemaType,
+        cat_ids: schema_lib.CatIDsSchemaType,
+        bboxes: schema_lib.BBoxesSchemaType,
+        polys: Union[None, list[schema_lib.PolysSchemaType]]
     ) -> "Instances":
-        data: schema.InstancesType = {
+        data: schema_lib.InstancesType = {
             "confs": confs,
             "cat_ids": cat_ids,
             "bboxes": bboxes,
@@ -62,7 +62,7 @@ class Instances:
                 if i in indice:
                     new_polys.append(poly)
 
-        new_data: schema.InstancesType = {
+        new_data: schema_lib.InstancesType = {
             "bboxes": new_bboxes,
             "polys": new_polys,
             "cat_ids": new_cat_ids,
@@ -84,7 +84,7 @@ class Instances:
 
 
 def concat(
-    insts_list: list["Instances"],
+    insts_list: list[Union["Instances", schema_lib.InstancesType]],
     poly_flag: bool
 ) -> "Instances":
     new_confs = []
@@ -93,6 +93,9 @@ def concat(
     new_polys = [] if poly_flag else None
 
     for insts in insts_list:
+        if isinstance(insts, dict):
+            insts = Instances(insts)
+
         new_confs.append(insts.data["confs"])
         new_cat_ids.append(insts.data["cat_ids"])
         new_bboxes.append(insts.data["bboxes"])
@@ -104,7 +107,7 @@ def concat(
     new_cat_ids = np.concat(new_cat_ids)
     new_bboxes = np.concat(new_bboxes, axis = 0)
 
-    new_data: schema.InstancesType = {
+    new_data: schema_lib.InstancesType = {
         "confs": new_confs,
         "cat_ids": new_cat_ids,
         "bboxes": new_bboxes,

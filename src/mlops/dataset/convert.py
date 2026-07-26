@@ -31,10 +31,10 @@ def labelme2coco_bbox_shape(
 
     return bbox
 
-
 def labelme2coco_bbox_file(
-    labelme_img_p: str,
     labelme_file: Union[str, tp_lib.LabelmeFileT],
+    img_id: int,
+    start_ann_id: int,
     cat_name_id_dict: dict[str, int]
 ) -> list[tp_lib.CocoAnnT]:
     """
@@ -42,8 +42,10 @@ def labelme2coco_bbox_file(
     将 Labelme 的 BBox JSON 标注文件转换为 COCO 格式的标注列表。
     
     参数:
-    - labelme_img_p: 图片路径，用于生成唯一的 image_id
     - labelme_file: Labelme JSON 文件路径或已解析的字典数据
+    - img_id
+    - start_ann_id
+    - cat_name_id_dict
         
     返回:
     - list[CocoAnnT]: 包含所有转换后 bbox 标注的列表
@@ -63,9 +65,6 @@ def labelme2coco_bbox_file(
     label2id = cat_name_id_dict
             
     coco_anns: list[tp_lib.CocoAnnT] = []
-    
-    # 使用图片路径的哈希值作为 image_id (取模防止过大)
-    image_id = abs(hash(labelme_img_p)) % (10**8)
     
     # 3. 遍历 shapes 进行转换
     for idx, shape in enumerate(data['shapes']):
@@ -89,9 +88,9 @@ def labelme2coco_bbox_file(
         
         # 4. 组装 CocoAnnT
         ann: tp_lib.CocoAnnT = {
-            "id": idx + 1,  # annotation 的唯一 id
+            "id": start_ann_id + idx,  # annotation 的唯一 id
             "iscrowd": 0,   # Labelme 中无此概念，默认为 0
-            "image_id": image_id,
+            "image_id": img_id,
             "category_id": label2id[label],
             "area": area,
             "bbox": bbox,
@@ -101,13 +100,83 @@ def labelme2coco_bbox_file(
         
     return coco_anns
 
+def labelme2coco_poly_shape(
+    points: tp_lib.PolyLabelmeT
+) -> tp_lib.PolyCocoT:
+    poly = []
+    for x, y in points:
+        poly.append(x)
+        poly.append(y)
+    return poly
+
+def _labelme_poly_area(
+    pts: tp_lib.PolyLabelmeT
+) -> float:
+    """
+    ```
+    Shoelace 公式计算单个 polygon 面积。
+    ```
+    """
+    n = len(pts)
+    if n < 3:
+        return 0.0
+    area = 0.0
+    for i in range(n):
+        j = (i + 1) % n
+        area += pts[i][0] * pts[j][1]
+        area -= pts[j][0] * pts[i][1]
+    return abs(area) / 2.0
+
+def _labelme_polys_merged_bbox(
+    all_pts: list[tp_lib.PolyLabelmeT]
+) -> tp_lib.BBoxLabelmeT:
+    """
+    ```
+    计算多个 polygon 的合并包围盒。
+    ```
+    """
+    xs = [p[0] for pts in all_pts for p in pts]
+    ys = [p[1] for pts in all_pts for p in pts]
+    x1, y1 = min(xs), min(ys)
+    x2, y2 = max(xs), max(ys)
+    return (float(x1), float(y1), float(x2), float(y2))
+
+def labelme2coco_poly_file(
+    labelme_file: Union[str, tp_lib.LabelmeFileT],
+    img_id: int,
+    start_ann_id: int,
+    cat_name_id_dict: dict[str, int],
+    merge_shape_group: bool
+) -> list[tp_lib.CocoAnnT]:
+    """
+    ```
+    将单个 Labelme Polygon JSON 标注转换为 COCO annotation 列表。
+
+    Parameters
+    ----------
+    img_id : int
+        该图片在 COCO 数据集中的 image id。
+    labelme_file : str | LabelmeFileT
+        Labelme JSON 文件路径，或已解析的 LabelmeFileT 字典。
+    cat_name_id_dict : dict[str, int]
+        category name → category id 映射。不在字典中的 label 将被跳过。
+    merge_shape_group : bool
+        True  → 将 group_id 相同（且非 None）的 polygon 合并到同一个 annotation；
+        False → 每个 polygon shape 独立生成一个 annotation。
+
+    Returns
+    -------
+    list[CocoAnnT]
+        转换后的 COCO annotation 列表（id 从 1 开始局部递增，
+        调用方可在外层重新分配全局唯一 id）。
+    ```
+    """
+    
 
 def labelme2coco_bbox_dataset(
     labelme_img_root: str,
     labelme_file_root: str,
     coco_dir: str,
-    # coco_file_p: str,
-    # coco_img_root: str,
     img_dir_mode: Literal["flat", "org_dir"],
     img_copy_mode: Literal["copy", "symbolic", "link_file"],
     cat_name_id_dict: dict[str, int]
@@ -182,7 +251,11 @@ def labelme2coco_bbox_dataset(
                 continue
                 
         # 3. 调用转换函数获取 annotations
-        anns = labelme2coco_bbox_file(str(src_img_p), data, cat_name_id_dict)
+        anns = labelme2coco_bbox_file(
+            img_idx, 
+            data, 
+            cat_name_id_dict
+        )
         
         # 提取所有的 rectangle shapes 用于同步获取 label
         rect_shapes = [s for s in data['shapes'] if s['shape_type'] == 'rectangle']
@@ -224,7 +297,7 @@ def labelme2coco_bbox_dataset(
         img_w = data.get('imageWidth', 0)
         
         coco_img: tp_lib.CocoImgT = {
-            "id": img_idx + 1,
+            "id": img_idx,
             "file_name": coco_file_name,
             "height": img_h,
             "width": img_w
@@ -235,11 +308,11 @@ def labelme2coco_bbox_dataset(
         for ann, shape in zip(anns, rect_shapes):
             label = shape['label']
                 
-            ann_idx += 1
             # 覆盖局部 ID 为全局唯一 ID
             ann['id'] = ann_idx
-            ann['image_id'] = img_idx + 1
+            ann['image_id'] = img_idx
             ann['category_id'] = cat_name_id_dict[label]
+            ann_idx += 1
             
             coco_annotations.append(ann)
             

@@ -1,0 +1,64 @@
+{
+  "version": "7.0.4",
+  "flags": {},
+  "shapes": [
+    {
+      "label": "tomato",
+      "points": [
+        [
+          217.48846745258842,
+          253.07022039979495
+        ],
+        [
+          264.64377242439775,
+          304.3259866735008
+        ]
+      ],
+      "group_id": null,
+      "description": "",
+      "shape_type": "rectangle",
+      "flags": {},
+      "mask": null
+    },
+    {
+      "label": "tomato",
+      "points": [
+        [
+          182.12198872373145,
+          251.01998974884674
+        ],
+        [
+          217.48846745258842,
+          294.0748334187596
+        ]
+      ],
+      "group_id": null,
+      "description": "",
+      "shape_type": "rectangle",
+      "flags": {},
+      "mask": null
+    },
+    {
+      "label": "tomato",
+      "points": [
+        [
+          158.03177857508973,
+          212.5781650435674
+        ],
+        [
+          201.59917990773963,
+          249.9948744233726
+        ]
+      ],
+      "group_id": null,
+      "description": "",
+      "shape_type": "rectangle",
+      "flags": {},
+      "mask": null
+    }
+  ],
+  "imagePath": "1.jpg",
+  "imageData": null,
+  "imageHeight": 480,
+  "imageWidth": 640
+}

@@ -221,11 +221,17 @@ def labelme2coco_dataset(
 
             <coco_root>
             | - images
-            | - | - <flatten_images_or_same_relative_directory_architecture_as_in_labelme_root>
-            | - | - | - XXX.png/jpg/jpeg/bmp/..
+            | - | - <labelme_root1>
+            | - | - | - <flatten_images_or_same_relative_directory_architecture_as_in_labelme_root>
+            | - | - | - | - XXX.png/jpg/jpeg/bmp/..
+            | - | - <labelme_root2>
+            | - | - | - ...
             | - paths
-            | - | - <same_directory_architecture_as_images_subfolder>
-            | - | - | - XXX.path
+            | - | - <labelme_root1>
+            | - | - | - <flatten_images_or_same_relative_directory_architecture_as_in_labelme_root>
+            | - | - | - | - XXX.path
+            | - | - <labelme_root2>
+            | - | - | - ...
             | - coco.json
             ```
             
@@ -245,8 +251,8 @@ def labelme2coco_dataset(
             的相对路径。
 
             比如 coco_root/images/a.jpg，
-            它来自于 labelme_root/folderA/x.jpg,
-            那么 coco_root/paths/a.path 里写的就是 "folderA/x.jpg"
+            它来自于 labelme_root1/folderA/x.jpg,
+            那么 coco_root/paths/a.path 里写的就是 "labelme_root1/folderA/x.jpg"
 
             ".path" 文件的意义是，在 flatten_reindex_img 为 True，
             图片经过重命名时，保留一份来源的记录。

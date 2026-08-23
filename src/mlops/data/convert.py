@@ -48,6 +48,22 @@ def labelme2coco_poly_shape(
         poly.append(y)
     return poly
 
+def _polygon_area(poly: dataTP.PolyCocoT) -> float:
+    """
+    Task:
+        使用鞋带公式计算一个 coco poly 的多边形面积。
+    """
+    xs = poly[0::2]
+    ys = poly[1::2]
+    n = len(xs)
+
+    area = 0.0
+    for i in range(n):
+        j = (i + 1) % n
+        area += xs[i] * ys[j] - xs[j] * ys[i]
+
+    return abs(area) / 2.0
+
 class LabelFile2CocoReturnT(TypedDict):
     """
     ```
@@ -107,7 +123,50 @@ def labelme2coco_file(
     ```
     """
 
-    # your code here
+    # 若传入的是文件路径则解析为 dict
+    if isinstance(labelme_file, str):
+        with open(labelme_file, "r") as f:
+            labelme_data: dataTP.LabelmeFileT = json.load(f)
+    else:
+        labelme_data = labelme_file
+
+    anns: list[dataTP.CocoAnnT] = []
+    ann_id = start_ann_id
+
+    for shape in labelme_data["shapes"]:
+        label = shape["label"]
+        if label not in cat_name_id_dict:
+            continue
+
+        points = shape["points"]
+
+        if shape_type == "bbox":
+            bbox = labelme2coco_bbox_shape(points)
+            area = int(bbox[2] * bbox[3])
+            segmentation = [labelme2coco_poly_shape(points)]
+        else:
+            poly = labelme2coco_poly_shape(points)
+            xs = poly[0::2]
+            ys = poly[1::2]
+            x1, y1 = min(xs), min(ys)
+            x2, y2 = max(xs), max(ys)
+            bbox = (x1, y1, x2 - x1, y2 - y1)
+            area = int(_polygon_area(poly))
+            segmentation = [poly]
+
+        ann: dataTP.CocoAnnT = {
+            "id": ann_id,
+            "iscrowd": 0,
+            "image_id": img_id,
+            "category_id": cat_name_id_dict[label],
+            "area": area,
+            "bbox": bbox,
+            "segmentation": segmentation,
+        }
+        anns.append(ann)
+        ann_id += 1
+
+    return {"anns": anns, "end_ann_id": ann_id}
 
 def labelme2coco_dataset(
     labelme_roots: list[str],
